@@ -1,6 +1,6 @@
 // pattern.rs
 //
-// Copyright (C) 2023-2025  Minnesota Department of Transportation
+// Copyright (C) 2023-2026  Minnesota Department of Transportation
 //
 use crate::dms::multi::{MultiStr, Rectangle, SyntaxError, Value};
 use crate::dms::sign::Dms;
@@ -112,8 +112,20 @@ impl<'p, const C: usize, const F: usize, const G: usize>
         let mut ms = String::new();
         for value in PatIter::new(self.dms, self.ms) {
             match value {
-                Ok(PatValue::Value(Value::Font(fv))) => font_val = Some(fv),
-                Ok(PatValue::Value(val)) => ms.push_str(&val.to_string()),
+                Ok(PatValue::Value(Value::Font(fv))) => {
+                    // two font tags in a row?!?
+                    if let Some(fv) = font_val.take() {
+                        ms.push_str(&Value::Font(fv).to_string());
+                    }
+                    // defer font tag in case fillable rect is next
+                    font_val = Some(fv);
+                }
+                Ok(PatValue::Value(val)) => {
+                    if let Some(fv) = font_val.take() {
+                        ms.push_str(&Value::Font(fv).to_string());
+                    }
+                    ms.push_str(&val.to_string());
+                }
                 Ok(PatValue::FillableRect(rect, font_num)) => {
                     for i in 0..self.dms.rect_lines(rect, font_num) {
                         match lines.next() {
@@ -126,11 +138,9 @@ impl<'p, const C: usize, const F: usize, const G: usize>
                             None => break,
                         }
                     }
-                    // defer font tag until lines are filled
-                    if let Some(fv) = font_val {
+                    if let Some(fv) = font_val.take() {
                         ms.push_str(&Value::Font(fv).to_string());
                     }
-                    font_val = None;
                 }
                 Err(_) => return String::new(),
             }
@@ -535,13 +545,6 @@ mod test {
         assert_eq!(res, ms);
     }
 
-    fn roundtrip_2(pattern: &str, ms: &str, ms2: &str) {
-        let dms = make_dms();
-        let lines = MessagePattern::new(&dms, pattern).lines(ms);
-        let res = MessagePattern::new(&dms, pattern).fill(lines);
-        assert_eq!(res, ms2);
-    }
-
     #[test]
     fn roundtrip_fillable_1() {
         roundtrip_1("", "[nl]");
@@ -568,6 +571,13 @@ mod test {
         roundtrip_1("[g1][tr1,10,50,8]", "[g1][tr1,10,50,8]TEXT");
     }
 
+    fn roundtrip_2(pattern: &str, ms: &str, ms2: &str) {
+        let dms = make_dms();
+        let lines = MessagePattern::new(&dms, pattern).lines(ms);
+        let res = MessagePattern::new(&dms, pattern).fill(lines);
+        assert_eq!(res, ms2);
+    }
+
     #[test]
     fn roundtrip_fillable_2() {
         roundtrip_2("", "ABC[nl3]DEF", "ABC[nl]DEF");
@@ -590,6 +600,25 @@ mod test {
             "[tr1,1,0,0][np][tr1,1,0,0]",
             "[tr1,1,0,0]TEXT[np][tr1,1,0,0]PAGE 2",
             "[tr1,1,0,0]TEXT[nl][np][tr1,1,0,0]PAGE 2[nl]",
+        );
+    }
+
+    #[test]
+    fn roundtrip_not_fillable() {
+        roundtrip_2(
+            "[tr1,1,0,0][fo7]TEXT",
+            "[tr1,1,0,0][fo7]TEXT",
+            "[tr1,1,0,0][fo7]TEXT",
+        );
+        roundtrip_2(
+            "[tr1,1,0,0][fo7][nl]TEXT",
+            "[tr1,1,0,0][fo7][nl]TEXT",
+            "[tr1,1,0,0][fo7][nl]TEXT",
+        );
+        roundtrip_2(
+            "[tr1,1,0,0][fo7][fo8]X",
+            "[tr1,1,0,0][fo7][fo8]X",
+            "[tr1,1,0,0][fo7][fo8]X",
         );
     }
 }
