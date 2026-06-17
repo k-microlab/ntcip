@@ -19,6 +19,8 @@ fn make_dms() -> Dms<128, 1, 0> {
             char_width_pixels: 0,
             sign_height_pixels: 28,
             sign_width_pixels: 140,
+            horizontal_pitch: 20,
+            vertical_pitch: 20,
             ..Default::default()
         })
         .with_font_definition(font_table())
