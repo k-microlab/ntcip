@@ -1,12 +1,12 @@
 // font.rs
 //
-// Copyright (C) 2018-2025  Minnesota Department of Transportation
+// Copyright (C) 2018-2026  Minnesota Department of Transportation
 //
 //! Font support for dynamic message signs
 use crate::dms::oer::Oer;
 use crc::Crc;
 use fstr::FStr;
-use log::debug;
+use log::trace;
 use pix::{Raster, rgb::SRgb8};
 
 /// Read/write fonts in `.tfon` format
@@ -118,7 +118,7 @@ impl CharacterEntry {
         cf: SRgb8,
     ) {
         let width = i32::from(self.width);
-        debug!("render_char: {} @ {x},{y} width: {width}", self.number);
+        trace!("render_char: {} @ {x},{y} width: {width}", self.number);
         let mut xx = 0;
         let mut yy = 0;
         for by in &self.bitmap {
@@ -259,11 +259,11 @@ impl<const C: usize> Font<C> {
         cf: SRgb8,
     ) -> Result<()> {
         let height = i32::from(self.height);
-        debug!(
+        trace!(
             "render_text: font number {}, name {}",
             self.number, self.name
         );
-        debug!("render_text: {text} @ {x},{y} height: {height}");
+        trace!("render_text: {text} @ {x},{y} height: {height}");
         let mut xx = 0;
         for ch in text.chars() {
             let c = self.character(ch).ok_or(FontError::InvalidChar(ch))?;

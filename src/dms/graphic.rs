@@ -1,13 +1,13 @@
 // graphic.rs
 //
-// Copyright (C) 2018-2025  Minnesota Department of Transportation
+// Copyright (C) 2018-2026  Minnesota Department of Transportation
 //
 //! Graphic image support
 use crate::dms::multi::{Color, ColorClassic, ColorCtx, ColorScheme};
 use crate::dms::oer::Oer;
 use crc::Crc;
 use fstr::FStr;
-use log::debug;
+use log::warn;
 use pix::{
     Raster,
     el::Pixel,
@@ -246,7 +246,7 @@ impl Graphic {
         match ctx.rgb(Color::Legacy(v)) {
             Some((red, green, blue)) => Some(SRgb8::new(red, green, blue)),
             None => {
-                debug!("pixel_8 -- Bad color {}", v);
+                warn!("pixel_8 -- Bad color {v}");
                 None
             }
         }

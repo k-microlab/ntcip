@@ -12,7 +12,7 @@
 //! [MultiCfg]: ../config/struct.MultiCfg.html
 //! [Tag]: enum.Tag.html
 use crate::dms::{FontError, GraphicError};
-use log::{debug, warn};
+use log::{trace, warn};
 use std::fmt;
 use std::str::FromStr;
 
@@ -436,7 +436,7 @@ impl From<&str> for ColorScheme {
             "colorClassic" => ColorScheme::ColorClassic,
             "color24Bit" => ColorScheme::Color24Bit,
             _ => {
-                warn!("Unknown color scheme: {}", s);
+                warn!("Unknown color scheme: {s}");
                 ColorScheme::Monochrome1Bit
             }
         }
@@ -1362,7 +1362,7 @@ fn parse_tag(tag: &str) -> Result<Value<'_>> {
 impl<'p> MultiStr<'p> {
     /// Create a new MULTI parser
     pub fn new(ms: &'p str) -> Self {
-        debug!("MultiStr::new {}", ms);
+        trace!("MultiStr::new {ms}");
         MultiStr { ms, offset: 0 }
     }
 

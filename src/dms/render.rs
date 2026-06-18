@@ -1,6 +1,6 @@
 // render.rs
 //
-// Copyright (C) 2018-2025  Minnesota Department of Transportation
+// Copyright (C) 2018-2026  Minnesota Department of Transportation
 //
 //! This module is for NTCIP 1203 DMS rendering.
 use crate::dms::font::{Font, FontTable};
@@ -11,7 +11,7 @@ use crate::dms::multi::{
 };
 use crate::dms::sign::Dms;
 use fstr::FStr;
-use log::debug;
+use log::trace;
 use pix::{Raster, Region, rgb::SRgb8};
 use std::fmt::Write;
 
@@ -440,7 +440,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
         self.check_unsupported()?;
         self.update_page_state()?;
         let mut raster = self.build_raster();
-        debug!("render_on_page {}x{}", raster.width(), raster.height());
+        trace!("render_on_page {}x{}", raster.width(), raster.height());
         let mut n_text_rectangles = 0;
         self.page_state = PageState::On(false);
         while self.page_state == PageState::On(false) {
@@ -787,7 +787,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
     ///
     /// Returns a tuple of (before, after) widths of matching spans.
     fn offset_horiz(&self, text_span: &Span) -> Result<(u16, u16)> {
-        debug!("offset_horiz '{}'", text_span.as_str());
+        trace!("offset_horiz '{}'", text_span.as_str());
         let rs = &text_span.state();
         let mut before = 0;
         let mut after = 0;
@@ -800,7 +800,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
                 } else {
                     after += w
                 }
-                debug!("  spacing {w} before {before} after {after}");
+                trace!("  spacing {w} before {before} after {after}");
             }
             let w = span.width(self.fonts())?;
             if span.state().span_number < rs.span_number {
@@ -808,7 +808,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
             } else {
                 after += w
             }
-            debug!("  span '{}'  before {before} after {after}", span.as_str());
+            trace!("  span '{}'  before {before} after {after}", span.as_str());
             pspan = Some(span);
         }
         if before + after <= rs.text_rectangle.width {
@@ -867,7 +867,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
     ///
     /// Returns a tuple of (above, below) heights of matching lines.
     fn offset_vert(&self, text_span: &Span) -> Result<(u16, u16)> {
-        debug!("offset_vert '{}'", text_span.as_str());
+        trace!("offset_vert '{}'", text_span.as_str());
         let is_full_matrix = self.dms.char_height() == 0;
         let rs = &text_span.state();
         let mut lines = Vec::new();
@@ -895,7 +895,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
                 } else {
                     below += h
                 }
-                debug!("  spacing {}  above {} below {}", h, above, below);
+                trace!("  spacing {h}  above {above} below {below}");
             }
             let h = line.height;
             if ln <= sln {
@@ -903,7 +903,7 @@ impl<'a, const C: usize, const F: usize, const G: usize> Pages<'a, C, F, G> {
             } else {
                 below += h
             }
-            debug!("  line {}  above {} below {}", ln, above, below);
+            trace!("  line {ln}  above {above} below {below}");
         }
         if above + below <= rs.text_rectangle.height {
             Ok((above, below))
